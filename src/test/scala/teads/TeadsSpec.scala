@@ -20,7 +20,7 @@ class TeadsSpec extends FlatSpec {
     readFile(file).getLines().next().toInt
   }
 
-  it should "be solved in XX steps" in {
+  ignore should "be solved in XX steps" in {
     val hypo = teads.Solution.readHypothesis(readFile("Test_1_input.txt"))
     val solution = readSolution("Test_1_output.txt")
 
