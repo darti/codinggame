@@ -1,0 +1,12 @@
+{
+  "name": "Simpliste",
+  "problem" : [
+    "12",
+    ".1"
+  ],
+  "solution": [
+    "0 0 1 0 1",
+    "1 0 1 1 1"
+  ],
+  "skip": false
+}
