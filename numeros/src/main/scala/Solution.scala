@@ -8,9 +8,12 @@ import scala.io.StdIn._
 package numeros {
 
   object Numeros {
-    def apply(num: Seq[String]): Int = {
+    private[this] def walk(num: Seq[String]): Int = {
+        val subNums = num flatMap { s => s.headOption.map( _ -> s.drop(1)) } groupBy(_._1)
+        1 + subNums.values.map {l => walk( l map(_._2))}.sum
+      }
 
-    }
+    def apply(num: Seq[String]) = walk(num) - 1
   }
 }
 
