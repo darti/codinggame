@@ -25,3 +25,5 @@ lazy val bourse = project settings(commonSettings: _*)
 lazy val conway = project settings(commonSettings: _*)
 
 lazy val numeros = project settings(commonSettings: _*)
+
+lazy val cgx = project settings(commonSettings: _*)
