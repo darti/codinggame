@@ -2,6 +2,7 @@ package cgx
 
 import org.scalatest.{Matchers, FlatSpec}
 
+import scala.collection.immutable.Queue
 import scala.io.Source
 
 /**
@@ -14,13 +15,13 @@ class Test extends FlatSpec with Matchers {
     val sol = Source.fromInputStream(getClass.getResourceAsStream(soluce)).getLines().toSeq.mkString("\n")
 
     s"$n) $txt" should s"be formated in\n$sol" in {
-      import cgx.Cgx._
 
-      val tree = parse(txt)
-      assert(tree.format() === sol)
+    val tree = Cgx.parse(txt)
+     assert(tree.format() === sol)
     }
   }
 
-  for(i <- 12 to 12) cgxTest(i, s"Test_${i}_input.txt", s"Test_${i}_output.txt")
+  for(i <- 1 to 7) cgxTest(i, s"Test_${i}_input.txt", s"Test_${i}_output.txt")
+
 
 }

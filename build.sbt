@@ -3,7 +3,7 @@ name := "codinggame"
 version := "1.0"
 
 val commonSettings = Seq(
-  scalaVersion  := "2.11.6",
+  scalaVersion  := "2.11.7",
   libraryDependencies +=
     "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 )

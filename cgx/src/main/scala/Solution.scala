@@ -1,101 +1,109 @@
 import scala.io.StdIn._
 
-
 package cgx {
 
-  object Cgx {
+import scala.annotation.tailrec
+import scala.collection.immutable.Queue
 
-    val indentSize = 4
 
-    abstract class Element {
-      def format(level: Int = 0): String = ""
+object Cgx {
 
-      def margin(level: Int) = " " * (indentSize * level)
+  val indentSize = 4
 
-      lazy val isNothing = false
-    }
+  abstract class Element {
+    def format(level: Int = 0): String = ""
 
-    abstract class Valeur extends Element
+    def margin(level: Int) = " " * (indentSize * level)
 
-    case class Bloc(elements: Seq[Element]) extends Valeur() {
-      override def format(level: Int = 0) =
-        s"""${margin(level)}(""" + (if(elements.isEmpty) "" else "\n") +
-           {elements.map(_.format(level + 1)).mkString(";\n")} +
-           s"""\n${margin(level)})"""
-    }
-
-    abstract class TypePrimitif extends Valeur()
-
-    case class Nombre(value: Int) extends TypePrimitif {
-      override def format(level: Int = 0) = margin(level) + value.toString
-    }
-
-    case class Bool(value: Boolean) extends TypePrimitif {
-      override def format(level: Int = 0) = margin(level) + value.toString
-    }
-
-    case object Null extends TypePrimitif
-
-    case class Chaine(value: String) extends TypePrimitif {
-      override def format(level: Int = 0) = s"${margin(level)}'$value'"
-    }
-
-    case class ClefValeur(clef: Chaine, valeur: Valeur)
-
-    case object Nothing extends Element {
-      override def format(level: Int): String = ""
-
-      override lazy val isNothing: Boolean = true
-    }
-
-    case object Rules {
-      val bool = """\s*(true|false)\s*"""
-      val rBool = bool.r("value")
-
-      val string = """\s*'([^']*)'\s*"""
-      val rString = string.r("value")
-
-      val int = """\s*([0-9]+)\s*"""
-      val rInt = int.r("value")
-
-      val bloc = """\s*\((.*)\)\s*"""
-      val rBloc = bloc.r("content")
-
-      val primitive = s"""$bloc|$bool|$string|$int"""
-      val list = s"""($primitive(;$primitive)*)"""
-      val rList = list.r
-
-      val rNothing = """(\s*)""".r
-    }
-
-    def splitBloc(content: String) = {
-      val parts = content split ";"
-      def debt(s: String) = ("""\)""".r findAllIn s).size -  ("""\)""".r findAllIn s).size
-
-      def merge(d: Int, current: String, ss: Seq[String]): List[String] = ss match {
-        case h :: t =>
-          val nd = d + debt(h)
-          if(nd == 0) (current + h) :: merge(0, "", t) else merge(nd, current + h, t)
-        case Nil => Nil
-      }
-      //
-      merge(0, "", parts.toList)
-    }
-
-    def parse(s: String): Element = {
-      import Rules._
-
-      s match {
-        case rBloc(content) =>
-          val sb = splitBloc(content)
-          Bloc(sb map parse filterNot(_.isNothing))
-        case rBool(value) => Bool(value.toBoolean)
-        case rString(value) => Chaine(value)
-        case rInt(value) => Nombre(value.toInt)
-        case rNothing => Nothing
-      }
-    }
+    lazy val isNothing = false
   }
+
+  abstract class Valeur extends Element
+
+  case class Bloc(elements: Seq[Element]) extends Valeur() {
+    override def format(level: Int = 0) =
+      s"""${margin(level)}(""" + (if (elements.isEmpty) "" else "\n") + {
+        elements.map(_.format(level + 1)).mkString(";\n")
+      } +
+        s"""\n${margin(level)})"""
+  }
+
+  abstract class TypePrimitif extends Valeur()
+
+  case class Nombre(value: Int) extends TypePrimitif {
+    override def format(level: Int = 0) = margin(level) + value.toString
+  }
+
+  class Bool(value: Boolean) extends TypePrimitif {
+    override def format(level: Int = 0) = margin(level) + value.toString
+  }
+
+  case object Vrai extends Bool(true)
+
+  case object Faux extends Bool(false)
+
+  case object Nulle extends TypePrimitif
+
+  case class Chaine(value: String) extends TypePrimitif {
+    override def format(level: Int = 0) = s"${margin(level)}'$value'"
+  }
+
+  case class ClefValeur(clef: Chaine, valeur: Valeur)
+
+  case object Nothing extends Element {
+    override def format(level: Int): String = ""
+
+    override lazy val isNothing: Boolean = true
+  }
+
+
+  val trueRegex = "(true)(.*)".r("true", "tail")
+
+  def parse(expr: String) = {
+
+    /*@tailrec*/ def lexer(q: List[Element], s: String): (List[Element], String) = s.headOption match {
+        case Some('t') =>
+          lexer(Vrai :: q, s.stripPrefix("true"))
+
+        case Some('f') =>
+          lexer(Faux :: q, s.stripPrefix("false"))
+
+        case Some('n') =>
+          lexer(Nulle :: q, s.stripPrefix("null"))
+
+        case Some('\'') =>
+          val se = s.indexOf("'", 1)
+          val (c, t) = s.splitAt(se)
+          lexer(Chaine(c.tail) :: q, t.tail)
+
+        case Some('(') =>
+          val (l, ss) =  lexer(List.empty, s.tail)
+          lexer(Bloc(l.reverse) :: q, ss)
+
+        case Some(')') =>
+          (q, s.tail)
+
+        case Some(';') =>
+          val (l, ss) =  lexer(List.empty, s.tail)
+          (l ++ q, ss)
+
+        case Some('=') =>
+          lexer(q, s.tail)
+
+        case None => (q, s)
+        case Some(c) if c.isDigit =>
+          val n = s.prefixLength(_.isDigit)
+          val (i, t) = s.splitAt(n)
+
+          lexer(Nombre(i.toInt) :: q, t)
+        case _ => lexer(q, s.tail)
+      }
+
+    val (el, s) = lexer(List.empty, expr)
+    el.head
+  }
+}
+
 }
 
 object Solution extends App {
