@@ -16,12 +16,12 @@ class Test extends FlatSpec with Matchers {
 
     s"$n) $txt" should s"be formated in\n$sol" in {
 
-    val tree = Cgx.parse(txt)
-     assert(tree.format() === sol)
+      val tree = Cgx.Parser(txt)
+      assert(tree.format() === sol)
     }
   }
 
-  for(i <- 1 to 7) cgxTest(i, s"Test_${i}_input.txt", s"Test_${i}_output.txt")
 
-
+  for(i <- 1 to 12) cgxTest(i, s"Test_${i}_input.txt", s"Test_${i}_output.txt")
 }
+
