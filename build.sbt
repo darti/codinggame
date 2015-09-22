@@ -27,3 +27,7 @@ lazy val conway = project settings(commonSettings: _*)
 lazy val numeros = project settings(commonSettings: _*)
 
 lazy val cgx = project settings(commonSettings: _*)
+
+lazy val gattaca = project settings(commonSettings: _*)
+
+lazy val superCalculateur = project settings(commonSettings: _*)
